@@ -13,13 +13,13 @@ async def send_message(request: Request):
             "apiKey": "testefluxIA",
             "chatId": int(data["chatId"]),
             "text": data.get("text", ""),
-            "info": false  # como string, pq em x-www-form-urlencoded é tudo string
+            "info": false  
         }
 
         # Envia como form-urlencoded
         response = requests.post(
             "https://atendmedbh.atenderbem.com/int/sendmessagetochat",
-            data=payload,  # <- aqui é o pulo do gato
+            json=payload,  # <-- Envia como JSON real
             headers={
                 "Accept": "application/json",
                 "Content-Type": "application/json"
