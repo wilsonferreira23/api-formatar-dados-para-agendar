@@ -8,12 +8,17 @@ async def send_message(request: Request):
     data = await request.json()
 
     try:
+        # Converte "true"/"false" string para booleano real
+        info_value = data.get("info", "false")
+        if isinstance(info_value, str):
+            info_value = info_value.strip().lower() == "true"
+
         payload = {
             "queueId": 15,
             "apiKey": "testefluxIA",
             "chatId": int(data["chatId"]),  # Certifica que é número
             "text": data.get("text", ""),
-            "info": False  # <-- Aqui é booleano real, não string
+            "info": info_value  # <-- Agora vem do request
         }
 
         headers = {
@@ -23,7 +28,7 @@ async def send_message(request: Request):
 
         response = requests.post(
             "https://atendmedbh.atenderbem.com/int/sendmessagetochat",
-            json=payload,  # <-- Envia como JSON real
+            json=payload,
             headers=headers
         )
 
@@ -35,3 +40,4 @@ async def send_message(request: Request):
 
     except Exception as e:
         return {"error": str(e)}
+
