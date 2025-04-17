@@ -11,19 +11,20 @@ async def send_message(request: Request):
         payload = {
             "queueId": 15,
             "apiKey": "testefluxIA",
-            "chatId": int(data["chatId"]),
+            "chatId": int(data["chatId"]),  # Certifica que é número
             "text": data.get("text", ""),
-            "info": false  
+            "info": False  # <-- Aqui é booleano real, não string
         }
 
-        # Envia como form-urlencoded
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+
         response = requests.post(
             "https://atendmedbh.atenderbem.com/int/sendmessagetochat",
             json=payload,  # <-- Envia como JSON real
-            headers={
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            }
+            headers=headers
         )
 
         return {
