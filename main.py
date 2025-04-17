@@ -12,7 +12,7 @@ async def send_message(request: Request):
             "queueId": 15,
             "apiKey": "testefluxIA",
             "chatId": int(data["chatId"]),
-            "text": data.get("text", ""),
+            "chatId": data["chatId"],  # sem int()
             "info": False
         }
 
