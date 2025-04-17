@@ -12,10 +12,12 @@ async def send_message(request: Request):
             "queueId": 15,
             "apiKey": "testefluxIA",
             "chatId": int(data["chatId"]),
-            "text": data["text"],  # <- obrigatório, sem fallback vazio
+            "text": data.get("text", ""),
             "info": False
         }
 
+        print(">>> Enviando payload:", payload)  # <-- Aqui!
+        
         response = requests.post(
             "https://atendmedbh.atenderbem.com/int/sendmessage",
             json=payload,
