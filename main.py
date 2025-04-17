@@ -22,7 +22,7 @@ async def send_message(request: Request):
             data=payload,  # <- aqui é o pulo do gato
             headers={
                 "Accept": "application/json",
-                "Content-Type": "application/x-www-form-urlencoded"
+                "Content-Type": "application/json"
             }
         )
 
