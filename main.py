@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 import requests
+import json
 
 app = FastAPI()
 
@@ -18,7 +19,7 @@ async def send_message(request: Request):
 
         response = requests.post(
             "https://atendmedbh.atenderbem.com/int/sendmessage",
-            json=payload,
+            data=json.dumps(payload),  # força json puro
             headers={
                 "Accept": "application/json",
                 "Content-Type": "application/json"
