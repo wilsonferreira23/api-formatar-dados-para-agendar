@@ -13,7 +13,7 @@ async def send_message(request: Request):
             "apiKey": "testefluxIA",
             "chatId": int(data["chatId"]),
             "text": data.get("text", ""),
-            "info": "false"  # como string, pq em x-www-form-urlencoded é tudo string
+            "info": false  # como string, pq em x-www-form-urlencoded é tudo string
         }
 
         # Envia como form-urlencoded
