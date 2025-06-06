@@ -14,8 +14,8 @@ async def send_message(request: Request):
             info_value = info_value.strip().lower() == "true"
 
         payload = {
-            "queueId": 15,
-            "apiKey": "testefluxIA",
+            "queueId": 10,
+            "apiKey": "eba186e5e8c6570061cb5e8c7739d8d1",
             "chatId": int(data["chatId"]),  # Certifica que é número
             "text": data.get("text", ""),
             "info": info_value  # <-- Agora vem do request
