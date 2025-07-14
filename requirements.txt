@@ -1,3 +1,4 @@
 fastapi
-uvicorn
-requests
+uvicorn[standard]
+validate-docbr  # <-- Para validar CPF
+python-dateutil # <-- Para analisar datas de forma mais inteligente
