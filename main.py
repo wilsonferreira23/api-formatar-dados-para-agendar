@@ -25,11 +25,12 @@ class PacientePayload(BaseModel):
     data_nascimento_paciente: Optional[str] = None
     cpf_paciente: Optional[str] = None
     id_agenda_escolhido: Optional[str] = None
-    dados_horarios: Optional[DadosHorarios] = Field(default=None, alias='dados_horarios')
+    dados_horarios: Optional[Any] = Field(default=None, alias='dados_horarios')
 
     @field_validator('dados_horarios', mode='before')
     @classmethod
     def parse_json_string(cls, value):
+        """Permite que dados_horarios seja string JSON ou dict."""
         if isinstance(value, str):
             try:
                 return json.loads(value)
@@ -49,7 +50,7 @@ class RespostaFormatada(BaseModel):
 app = FastAPI(
     title="API de Processamento de Agendamentos (Super Segura)",
     description="API robusta com validações avançadas de dados para garantir a integridade das informações.",
-    version="3.0.0"
+    version="3.0.1"
 )
 
 # --- Lógica de Negócio e Validação Avançada ---
@@ -62,11 +63,15 @@ def identificar_genero(nome: str) -> str:
     male_names = ["Abel", "Carlos", "Eduardo", "Fernando", "Gustavo", "Henrique", "João", "Lucas", "Miguel", "Pedro", "Ricardo", "Samuel", "Tiago", "Vitor", "Yuri", "Renê", "Noa", "Fabrízio", "Ícaro", "Denis", "Luis", "Marcos", "Rodrigo", "André", "Matheus", "Felipe", "Danilo", "Gabriel", "Leonardo", "Rafael", "Bruno"]
     female_names = ["Ana", "Beatriz", "Carla", "Daniela", "Elaine", "Fernanda", "Gabriela", "Helena", "Isabela", "Juliana", "Karla", "Larissa", "Mariana", "Natália", "Priscila", "Renata", "Tatiane", "Vanessa", "Dominique", "Evelyn", "Celeste", "Amarílis", "Laís", "Ísis", "Camila", "Patrícia", "Jéssica", "Lorena", "Sabrina", "Viviane", "Anny", "Emily", "Kelly", "Jenny", "Lilly", "Agnes", "Eloise", "Yasmin", "Yasmim", "Miriam", "Jasmim"]
     primeiro_nome = nome.split(" ")[0].lower()
-    if primeiro_nome in [n.lower() for n in male_names]: return "M"
-    if primeiro_nome in [n.lower() for n in female_names]: return "F"
+    if primeiro_nome in [n.lower() for n in male_names]:
+        return "M"
+    if primeiro_nome in [n.lower() for n in female_names]:
+        return "F"
     last_char = primeiro_nome[-1]
-    if last_char in ['a', 'e']: return "F"
-    if last_char in ['o', 'r', 'u', 'n']: return "M"
+    if last_char in ['a', 'e']:
+        return "F"
+    if last_char in ['o', 'r', 'u', 'n']:
+        return "M"
     return "M"
 
 def formatar_e_validar_telefone(phone: str) -> str:
@@ -96,31 +101,28 @@ def formatar_e_validar_cpf(cpf_str: str) -> str:
     return cpf_digits
 
 def identificar_id_agenda(id_agenda_escolhido: str, dados_horarios: DadosHorarios) -> str:
-    if not dados_horarios.horarios_disponiveis:
+    if not dados_horarios or not dados_horarios.get("horarios_disponiveis"):
         raise HTTPException(status_code=404, detail="A lista de horários disponíveis está vazia.")
     try:
-        primeira_data_str = dados_horarios.horarios_disponiveis[0].data
+        primeira_data_str = dados_horarios["horarios_disponiveis"][0]["data"]
         ano_base = datetime.strptime(primeira_data_str, "%Y-%m-%d").year
         dt_alvo = parse(id_agenda_escolhido, dayfirst=True, default=datetime(ano_base, 1, 1))
         if dt_alvo.year == ano_base and id_agenda_escolhido.count('/') == 1:
-             dt_alvo = dt_alvo.replace(year=ano_base)
-    except (ValueError, ParserError, IndexError):
+            dt_alvo = dt_alvo.replace(year=ano_base)
+    except (ValueError, ParserError, IndexError, KeyError):
         raise HTTPException(status_code=400, detail=f"Formato de data e hora escolhida ('{id_agenda_escolhido}') é inválido.")
     data_alvo_str = dt_alvo.strftime('%Y-%m-%d')
     hora_alvo_str = dt_alvo.strftime('%H:%M')
-    for item_dia in dados_horarios.horarios_disponiveis:
-        if item_dia.data == data_alvo_str:
-            for id_completo in item_dia.horarios:
+    for item_dia in dados_horarios["horarios_disponiveis"]:
+        if item_dia["data"] == data_alvo_str:
+            for id_completo in item_dia["horarios"]:
                 try:
                     _, _, _, _, hora_chave = id_completo.split('|')
                     if hora_chave == hora_alvo_str:
                         return id_completo
                 except ValueError:
                     continue
-    raise HTTPException(
-        status_code=404,
-        detail=f"O horário '{id_agenda_escolhido}' não foi encontrado nos horários disponíveis."
-    )
+    raise HTTPException(status_code=404, detail=f"O horário '{id_agenda_escolhido}' não foi encontrado nos horários disponíveis.")
 
 # --- Rota Principal da API ---
 @app.post("/processar", response_model=RespostaFormatada)
@@ -145,7 +147,3 @@ def processar_agendamento(payload: PacientePayload):
     except Exception as e:
         print(f"Erro inesperado: {e}")
         raise HTTPException(status_code=500, detail="Ocorreu um erro interno no servidor.")
-
-
-    except Exception as e:
-        return {"error": str(e)}
