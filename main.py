@@ -1,5 +1,3 @@
-atue como dev senior e me explique esse codigo em python:
-
 # main.py
 import uvicorn
 import re
